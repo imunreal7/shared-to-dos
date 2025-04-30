@@ -1,0 +1,26 @@
+Project todo-app {
+  database_type: "PostgreSQL"
+}
+
+Table users {
+  id UUID [primary key, default: uuid_generate_v4()]
+  email varchar [not null, unique]
+  display_name varchar
+  created_at timestamp [default: `now()`]
+}
+
+Table tasks {
+  id UUID [primary key, default: uuid_generate_v4()]
+  title varchar [not null]
+  description text
+  created_by UUID [not null, ref: > users.id]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+Table task_shares {
+  id UUID [primary key, default: uuid_generate_v4()]
+  task_id UUID [not null, ref: > tasks.id]
+  shared_with UUID [not null, ref: > users.id]
+  created_at timestamp [default: `now()`]
+}
