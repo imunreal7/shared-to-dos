@@ -28,3 +28,24 @@ export async function deleteTaskHandler(req: FastifyRequest, res: FastifyReply) 
     return res.send({ message: "Task deleted" });
 }
 
+export async function getFilteredTasksHandler(req: FastifyRequest, res: FastifyReply) {
+    const userId = req.user.dbId;
+    const filter = (req.query as any).filter;
+
+    switch (filter) {
+        case "my":
+            return res.send(await TaskModel.getMyTasks(req.server, userId));
+        case "shared":
+            return res.send(await TaskModel.getSharedTasks(req.server, userId));
+        case "all":
+        default:
+            return res.send(await TaskModel.getAllTasksForUser(req.server, userId));
+    }
+}
+
+export async function shareTaskHandler(req: FastifyRequest, res: FastifyReply) {
+    const { taskId, targetUserId } = req.body as { taskId: string; targetUserId: string };
+    await TaskModel.shareTaskWithUser(req.server, taskId, targetUserId);
+    return res.send({ message: "Task shared" });
+}
+

@@ -2,9 +2,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "YOUR_WEB_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    // …rest of config from Firebase Console
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
 };
 
 const app = initializeApp(firebaseConfig);

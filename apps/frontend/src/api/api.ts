@@ -34,10 +34,11 @@ export async function updateTask(id: string, title: string, description: string)
 }
 
 export async function deleteTask(id: string) {
-    return API.delete(`/tasks/${id}`);
+    return await API.delete(`/tasks/${id}`);
 }
 
 export async function shareTask(taskId: string, userId: string) {
     const res = await API.post("/tasks/share", { taskId, userId });
     return res.data;
 }
+

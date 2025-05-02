@@ -33,23 +33,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(fbUser);
                 const idToken = await fbUser.getIdToken();
                 setToken(idToken);
+                localStorage.setItem("idToken", idToken);
             } else {
                 setUser(null);
                 setToken(null);
+                localStorage.removeItem("idToken");
             }
         });
     }, []);
 
     async function login(email: string, password: string) {
         const cred = await signInWithEmailAndPassword(auth, email, password);
+        const idToken = await cred.user.getIdToken();
         setUser(cred.user);
-        setToken(await cred.user.getIdToken());
+        setToken(idToken);
+        localStorage.setItem("idToken", idToken);
     }
 
     async function signup(email: string, password: string) {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const idToken = await cred.user.getIdToken();
         setUser(cred.user);
-        setToken(await cred.user.getIdToken());
+        setToken(idToken);
+        localStorage.setItem("idToken", idToken);
+        setToken(idToken);
     }
 
     async function logout() {
