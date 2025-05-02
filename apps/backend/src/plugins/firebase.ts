@@ -1,14 +1,21 @@
-import fp from "fastify-plugin";
 import admin from "firebase-admin";
-import { FastifyInstance } from "fastify";
+import fs from "fs";
 
-export default fp(async (server: FastifyInstance) => {
+const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS!;
+
+if (!serviceAccountPath) {
+    throw new Error("❌ GOOGLE_APPLICATION_CREDENTIALS is not defined");
+}
+
+export function initFirebase() {
     if (!admin.apps.length) {
-        admin.initializeApp({
-            credential: admin.credential.applicationDefault(),
-        });
-    }
+        const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf-8"));
 
-    server.decorate("firebaseAdmin", admin);
-});
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+        });
+
+        console.log("✅ Firebase Admin initialized");
+    }
+}
 

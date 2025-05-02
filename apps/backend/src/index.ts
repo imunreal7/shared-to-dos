@@ -1,21 +1,30 @@
+// 1) Load env early
+import "dotenv/config";
+
 import Fastify from "fastify";
-import fastifyCors from "@fastify/cors";
-import { registerRoutes } from "./routes";
+import dbPlugin from "./plugins/db.js";
+import { initFirebase } from "./plugins/firebase.js";
+import { registerRoutes } from "./routes/index.js";
 
 const server = Fastify({ logger: true });
 
 async function build() {
-    await server.register(fastifyCors);
+    initFirebase();
+
+    // Register Postgres plugin
+    await server.register(dbPlugin);
+
+    // DEBUG: confirm that pg exists
+    server.log.info({ hasPg: !!(server as any).pg }, "postgres plugin loaded");
+
+    // Register all routes
     await registerRoutes(server);
 
-    try {
-        await server.listen({ port: 3001 });
-        console.log("Server running on http://localhost:3001");
-    } catch (err) {
-        server.log.error(err);
-        process.exit(1);
-    }
+    await server.listen({ port: 3001 });
 }
 
-build();
+build().catch((err) => {
+    server.log.error(err);
+    process.exit(1);
+});
 

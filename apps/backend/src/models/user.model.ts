@@ -1,9 +1,21 @@
 import { FastifyInstance } from "fastify";
 
-export async function createUser(server: FastifyInstance, email: string, displayName: string) {
+export async function getUserByFirebaseUid(server: FastifyInstance, firebaseUid: string) {
+    const { rows } = await server.pg.query("SELECT * FROM users WHERE firebase_uid = $1", [
+        firebaseUid,
+    ]);
+    return rows[0];
+}
+
+export async function createUser(
+    server: FastifyInstance,
+    email: string,
+    displayName: string,
+    firebaseUid: string,
+) {
     const { rows } = await server.pg.query(
         "INSERT INTO users (email, display_name) VALUES ($1, $2) RETURNING *",
-        [email, displayName],
+        [email, displayName, firebaseUid],
     );
     return rows[0];
 }

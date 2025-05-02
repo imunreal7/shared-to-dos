@@ -1,10 +1,11 @@
+// src/plugins/db.ts
 import fp from "fastify-plugin";
-import { FastifyInstance } from "fastify";
 import fastifyPostgres from "@fastify/postgres";
+import { FastifyInstance } from "fastify";
 
 export default fp(async (server: FastifyInstance) => {
-    server.register(fastifyPostgres, {
-        connectionString: process.env.DATABASE_URL || "postgres://postgres:postgres@db:5432/todo",
-    });
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error("DATABASE_URL is not defined");
+    server.register(fastifyPostgres, { connectionString: url });
 });
 
