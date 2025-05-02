@@ -49,26 +49,6 @@ export async function deleteTask(server: FastifyInstance, id: string) {
     await server.pg.query("DELETE FROM tasks WHERE id = $1", [id]);
 }
 
-export async function getAllTasksForUser(server: FastifyInstance, userId: string) {
-    const client = await server.pg.connect();
-    try {
-        const { rows } = await client.query(
-            `
-        SELECT * FROM tasks
-        WHERE created_by = $1
-           OR id IN (
-              SELECT task_id FROM shared_tasks WHERE user_id = $1
-           )
-        ORDER BY created_at DESC
-        `,
-            [userId],
-        );
-        return rows;
-    } finally {
-        client.release();
-    }
-}
-
 export async function getMyTasks(server: FastifyInstance, userId: string) {
     const client = await server.pg.connect();
     try {
@@ -116,5 +96,42 @@ export async function shareTaskWithUser(
     } finally {
         client.release();
     }
+}
+
+// Tasks the user created
+export async function getTasksCreatedByUser(server: FastifyInstance, userId: string) {
+    const { rows } = await server.pg.query(
+        `SELECT * FROM tasks WHERE created_by = $1 ORDER BY created_at DESC`,
+        [userId],
+    );
+    return rows;
+}
+
+// Tasks shared *with* the user
+export async function getTasksSharedWithUser(server: FastifyInstance, userId: string) {
+    const { rows } = await server.pg.query(
+        `
+        SELECT t.* FROM tasks t
+        JOIN shared_tasks s ON s.task_id = t.id
+        WHERE s.shared_with = $1
+        ORDER BY t.created_at DESC
+        `,
+        [userId],
+    );
+    return rows;
+}
+
+// All tasks: created by OR shared with user
+export async function getAllTasksForUser(server: FastifyInstance, userId: string) {
+    const { rows } = await server.pg.query(
+        `
+        SELECT DISTINCT t.* FROM tasks t
+        LEFT JOIN shared_tasks s ON s.task_id = t.id
+        WHERE t.created_by = $1 OR s.shared_with = $1
+        ORDER BY t.created_at DESC
+        `,
+        [userId],
+    );
+    return rows;
 }
 

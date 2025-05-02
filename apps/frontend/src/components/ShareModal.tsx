@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { shareTask } from "../api/api";
-import axios from "axios";
+import { fetchUsers, shareTask } from "../api/api";
 
 type Props = {
     taskId: string;
@@ -15,9 +14,21 @@ const ShareModal: React.FC<Props> = ({ taskId, onClose, onShared }) => {
     const [selected, setSelected] = useState("");
 
     useEffect(() => {
-        axios
-            .get("/users") // assume you add GET /users in backend
-            .then((res) => setUsers(res.data));
+        const load = async () => {
+            try {
+                const result = await fetchUsers();
+                if (Array.isArray(result)) {
+                    setUsers(result);
+                } else {
+                    console.error("Expected array, got", result);
+                    setUsers([]);
+                }
+            } catch (e) {
+                console.error("Failed to fetch users", e);
+                setUsers([]);
+            }
+        };
+        load();
     }, []);
 
     const handleShare = async () => {
@@ -45,3 +56,4 @@ const ShareModal: React.FC<Props> = ({ taskId, onClose, onShared }) => {
 };
 
 export default ShareModal;
+

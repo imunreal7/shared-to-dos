@@ -4,12 +4,17 @@ import { AuthContext } from "../contexts/AuthContext";
 import TaskItem from "../components/TaskItem";
 import ShareModal from "../components/ShareModal";
 
-type Task = { id: string; title: string; description: string; created_by: string };
+type Task = {
+    id: string;
+    title: string;
+    description: string;
+    created_by: string;
+};
 
 enum Filter {
-    All,
-    My,
-    Shared,
+    All = "all",
+    My = "my",
+    Shared = "shared",
 }
 
 const TasksPage: React.FC = () => {
@@ -20,41 +25,48 @@ const TasksPage: React.FC = () => {
     const [shareTaskId, setShareTaskId] = useState<string | null>(null);
 
     const loadTasks = async () => {
-        const data = await fetchTasks();
+        const data = await fetchTasks(filter); // Pass filter to backend
         setTasks(data);
     };
 
     useEffect(() => {
-        loadTasks();
-    }, []);
-
-    const filtered = tasks.filter((t) => {
-        if (filter === Filter.My) return t.created_by === user?.uid;
-        if (filter === Filter.Shared) return t.created_by !== user?.uid;
-        return true;
-    });
+        if (user) loadTasks();
+    }, [filter, user]);
 
     const handleCreate = async () => {
-        const title = prompt("Title");
-        const description = prompt("Description") || "";
+        const title = prompt("Enter task title:");
+        const description = prompt("Enter task description:") || "";
         if (title) {
             await createTask(title, description);
             loadTasks();
         }
     };
 
+    const handleShare = (taskId: string) => {
+        setShareTaskId(taskId);
+        setShowShare(true);
+    };
+
     return (
         <div>
             <h1>Tasks</h1>
-            <button onClick={handleCreate}>+ New Task</button>
-            <select onChange={(e) => setFilter(Number(e.target.value) as Filter)}>
-                <option value={Filter.All}>All Tasks</option>
-                <option value={Filter.My}>My Tasks</option>
-                <option value={Filter.Shared}>Shared Tasks</option>
-            </select>
+
+            <div style={{ marginBottom: "1rem" }}>
+                <button onClick={handleCreate}>+ New Task</button>
+
+                <select
+                    style={{ marginLeft: "1rem" }}
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value as Filter)}
+                >
+                    <option value={Filter.All}>All Tasks</option>
+                    <option value={Filter.My}>My Tasks</option>
+                    <option value={Filter.Shared}>Shared Tasks</option>
+                </select>
+            </div>
 
             <ul>
-                {filtered.map((task) => (
+                {tasks.map((task) => (
                     <TaskItem
                         key={task.id}
                         task={task}
@@ -66,10 +78,7 @@ const TasksPage: React.FC = () => {
                             await updateTask(task.id, t, d);
                             loadTasks();
                         }}
-                        onShare={() => {
-                            setShareTaskId(task.id);
-                            setShowShare(true);
-                        }}
+                        onShare={() => handleShare(task.id)}
                     />
                 ))}
             </ul>
@@ -79,7 +88,8 @@ const TasksPage: React.FC = () => {
                     taskId={shareTaskId}
                     onClose={() => setShowShare(false)}
                     onShared={() => {
-                        setShowShare(false); /* maybe reload */
+                        setShowShare(false);
+                        loadTasks();
                     }}
                 />
             )}
@@ -88,3 +98,4 @@ const TasksPage: React.FC = () => {
 };
 
 export default TasksPage;
+

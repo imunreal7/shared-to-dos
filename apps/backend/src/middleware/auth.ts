@@ -28,6 +28,7 @@ export async function verifyFirebaseToken(request: FastifyRequest, reply: Fastif
             name,
         };
     } catch (err) {
+        console.error("Failed to verify token", err);
         return reply.status(401).send({ message: "Invalid token" });
     }
 }
