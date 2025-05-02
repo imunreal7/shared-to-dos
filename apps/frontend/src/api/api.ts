@@ -44,7 +44,7 @@ export async function deleteTask(id: string) {
 
 // Share task with another user
 export async function shareTask(taskId: string, userId: string) {
-    const res = await API.post("/tasks/share", { taskId, userId });
+    const res = await API.post("/tasks/share", { taskId, targetUserId: userId });
     return res.data;
 }
 

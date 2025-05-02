@@ -11,23 +11,16 @@ export async function createTaskHandler(req: FastifyRequest, res: FastifyReply) 
 
 export async function getTasksHandler(req: FastifyRequest, res: FastifyReply) {
     const userId = req.user.dbId;
-    const filter = (req.query as { filter?: string })?.filter || "all";
-
-    let tasks;
+    const filter = (req.query as any).filter || "all";
 
     switch (filter) {
         case "my":
-            tasks = await TaskModel.getTasksCreatedByUser(req.server, userId);
-            break;
+            return res.send(await TaskModel.getTasksCreatedByUser(req.server, userId));
         case "shared":
-            tasks = await TaskModel.getTasksSharedWithUser(req.server, userId);
-            break;
+            return res.send(await TaskModel.getTasksSharedWithUser(req.server, userId));
         default:
-            tasks = await TaskModel.getAllTasksForUser(req.server, userId); // both created and shared
-            break;
+            return res.send(await TaskModel.getAllTasksForUser(req.server, userId));
     }
-
-    return res.send(tasks);
 }
 
 export async function updateTaskHandler(req: FastifyRequest, res: FastifyReply) {

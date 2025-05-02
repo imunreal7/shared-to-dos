@@ -81,23 +81,6 @@ export async function getSharedTasks(server: FastifyInstance, userId: string) {
     }
 }
 
-export async function shareTaskWithUser(
-    server: FastifyInstance,
-    taskId: string,
-    targetUserId: string,
-) {
-    const client = await server.pg.connect();
-    try {
-        await client.query(
-            `INSERT INTO shared_tasks (task_id, user_id) VALUES ($1, $2)
-         ON CONFLICT DO NOTHING`,
-            [taskId, targetUserId],
-        );
-    } finally {
-        client.release();
-    }
-}
-
 // Tasks the user created
 export async function getTasksCreatedByUser(server: FastifyInstance, userId: string) {
     const { rows } = await server.pg.query(
@@ -107,29 +90,40 @@ export async function getTasksCreatedByUser(server: FastifyInstance, userId: str
     return rows;
 }
 
-// Tasks shared *with* the user
+export async function shareTaskWithUser(server: FastifyInstance, taskId: string, userId: string) {
+    await server.pg.query(
+        `INSERT INTO shared_tasks (task_id, user_id)
+      VALUES ($1, $2)
+      ON CONFLICT DO NOTHING`,
+        [taskId, userId],
+    );
+}
+
+// tasks *shared with* me:
 export async function getTasksSharedWithUser(server: FastifyInstance, userId: string) {
     const { rows } = await server.pg.query(
         `
-        SELECT t.* FROM tasks t
-        JOIN shared_tasks s ON s.task_id = t.id
-        WHERE s.shared_with = $1
-        ORDER BY t.created_at DESC
-        `,
+    SELECT t.*
+    FROM tasks t
+    JOIN shared_tasks s ON s.task_id = t.id
+    WHERE s.user_id = $1
+    ORDER BY t.created_at DESC
+  `,
         [userId],
     );
     return rows;
 }
 
-// All tasks: created by OR shared with user
+// all tasks I own or that are shared with me:
 export async function getAllTasksForUser(server: FastifyInstance, userId: string) {
     const { rows } = await server.pg.query(
         `
-        SELECT DISTINCT t.* FROM tasks t
-        LEFT JOIN shared_tasks s ON s.task_id = t.id
-        WHERE t.created_by = $1 OR s.shared_with = $1
-        ORDER BY t.created_at DESC
-        `,
+    SELECT DISTINCT t.*
+    FROM tasks t
+    LEFT JOIN shared_tasks s ON s.task_id = t.id
+    WHERE t.created_by = $1 OR s.user_id = $1
+    ORDER BY t.created_at DESC
+  `,
         [userId],
     );
     return rows;
