@@ -24,6 +24,17 @@ services:
         depends_on:
             - db
 
+    frontend:
+        build:
+            context: ..
+            dockerfile: docker/Dockerfile.frontend
+        ports:
+            - "3000:4173"
+        environment:
+            - VITE_API_URL=http://host.docker.internal:3001
+        depends_on:
+            - backend
+
 volumes:
     pgdata:
 
