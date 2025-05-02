@@ -4,6 +4,12 @@ A monorepo To-Do List application with a PostgreSQL backend using Fastify, Fireb
 
 ---
 
+## DEMO
+
+[![Demo Video](/apps/frontend/public/Shared-to-do.png)](https://youtu.be/a9wPPhdLRlA)
+
+---
+
 ## 🔧 Tech Stack
 
 -   **Frontend**: React (Vite)
